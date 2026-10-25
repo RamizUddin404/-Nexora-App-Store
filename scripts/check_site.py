@@ -81,7 +81,7 @@ def main():
         for anchor in checker.anchors:
             if anchor and anchor not in checker.ids:
                 checker.errors.append(f"Broken in-page anchor: #{anchor}")
-        scripts = re.findall(r"<script\\b[^>]*>([\\s\\S]*?)</script>", source, re.IGNORECASE)
+        scripts = re.findall(r"<script\b[^>]*>([\s\S]*?)</script>", source, re.IGNORECASE)
         if not scripts:
             checker.errors.append("No inline JavaScript block found")
         elif shutil.which("node"):
