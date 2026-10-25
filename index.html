@@ -22,14 +22,58 @@
 .tool-card .project-actions .btn{min-width:0}
 #termuxCommands{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:12px;line-height:1.7}
 @media(max-width:620px){.tool-grid{grid-template-columns:1fr}}
+
+/* NEXORA authentication layer */
+.auth-gate{min-height:100vh;display:grid;place-items:center;padding:24px;position:relative;overflow:hidden;background:radial-gradient(ellipse at 18% 20%,rgba(73,95,255,.18),transparent 42%),radial-gradient(ellipse at 82% 78%,rgba(45,245,205,.13),transparent 38%),#080b14;color:#edf4ff}
+.auth-card{width:min(100%,460px);position:relative;z-index:2;border:1px solid rgba(154,178,255,.25);border-radius:28px;padding:clamp(24px,5vw,42px);background:rgba(14,20,39,.82);box-shadow:0 25px 100px rgba(0,0,0,.45),inset 0 1px rgba(255,255,255,.07);backdrop-filter:blur(22px)}
+.auth-logo{display:flex;align-items:center;gap:12px;font-size:22px;font-weight:900;letter-spacing:.15em;margin-bottom:28px}
+.auth-logo-mark{width:46px;height:46px;display:grid;place-items:center;border-radius:15px;color:#80fff0;border:1px solid rgba(128,255,240,.5);box-shadow:0 0 28px rgba(76,255,226,.18);transform:rotate(-8deg)}
+.auth-card h1{font-size:clamp(30px,7vw,43px);line-height:1.08;letter-spacing:-.045em;margin:0 0 12px}
+.auth-card h1 span{background:linear-gradient(100deg,#80fff0,#9ba7ff 60%,#f2a9ff);color:transparent;background-clip:text}
+.auth-card p{color:#aab6d1;line-height:1.65;margin:0 0 24px}
+.auth-form{display:grid;gap:13px}
+.auth-form label{font-size:12px;color:#aebbd8;letter-spacing:.09em;text-transform:uppercase}
+.auth-form input{width:100%;margin-top:7px;border:1px solid rgba(154,178,255,.23);background:#0a1021;color:#f6f8ff;border-radius:13px;padding:14px 15px;outline:none}
+.auth-form input:focus{border-color:#80fff0;box-shadow:0 0 0 3px rgba(128,255,240,.09)}
+.auth-actions{display:flex;gap:10px;margin-top:6px}
+.auth-actions button{flex:1;cursor:pointer;border:1px solid rgba(154,178,255,.24);border-radius:13px;padding:13px 10px;font-weight:750;color:#eef5ff;background:#18223b}
+.auth-actions .auth-primary{background:linear-gradient(110deg,#64e9d8,#8f9fff);color:#07111e;border:0}
+.auth-message{min-height:22px;font-size:13px;color:#8fffea;margin-top:12px;overflow-wrap:anywhere}
+.auth-orbit{position:absolute;width:390px;height:390px;border:1px solid rgba(128,255,240,.14);border-radius:50%;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;animation:authSpin 32s linear infinite}
+.auth-orbit:before,.auth-orbit:after{content:"";position:absolute;border:1px solid rgba(151,162,255,.17);border-radius:50%;inset:32px;transform:rotateX(68deg) rotate(35deg)}
+.auth-orbit:after{inset:65px;transform:rotateY(68deg) rotate(-35deg)}
+.auth-spark{position:absolute;width:7px;height:7px;border-radius:50%;background:#80fff0;box-shadow:0 0 20px #80fff0;top:18%;left:72%}
+.auth-credit{margin-top:24px;font-size:12px;color:#7f8eaf;text-align:center}
+.auth-credit strong{color:#c5d4f3}
+#appShell[hidden],#authGate[hidden]{display:none!important}
+@keyframes authSpin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.auth-orbit{animation:none}}
+
 </style>
 </head>
 <body>
+
+<section class="auth-gate" id="authGate" aria-labelledby="authTitle">
+  <div class="auth-orbit"><span class="auth-spark"></span></div>
+  <div class="auth-card">
+    <div class="auth-logo"><span class="auth-logo-mark">N</span><span>NEXORA</span></div>
+    <h1 id="authTitle">Your universe.<br><span>Your access.</span></h1>
+    <p>Sign in to explore the app store, browser tools and curated projects. New here? Create your account below.</p>
+    <form class="auth-form" id="authForm">
+      <label>Email address<input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com" required></label>
+      <label>Password<input id="authPassword" type="password" autocomplete="current-password" minlength="8" placeholder="At least 8 characters" required></label>
+      <div class="auth-actions"><button type="submit" class="auth-primary" id="signInBtn">Sign in</button><button type="button" id="signUpBtn">Create account</button></div>
+    </form>
+    <div class="auth-message" id="authMessage" role="status" aria-live="polite"></div>
+    <div class="auth-credit">Created with purpose by <strong>Ramiz Uddin</strong> · NEXORA</div>
+  </div>
+</section>
+<div id="appShell" hidden>
 <div class="ambient"></div>
 <header class="wrap topbar">
 <a class="brand" href="#" aria-label="Nexora home"><span class="brandmark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 18V6l16 12V6"/><path d="M4 18h5"/></svg></span><span>NEXORA</span></a>
-<nav class="nav" id="nav"><a class="active" href="#home">Discover</a><a href="#apps">Apps</a><a href="#tools">Tool Lab</a><a href="#store">Projects</a><a href="#collections">Collections</a><a href="#about">About</a></nav>
-<div class="navright"><button class="iconbtn" id="themeBtn" title="Toggle theme" aria-label="Toggle theme">☼</button><button class="btn secondary" id="savedBtn">♡ Saved <span id="savedCount">0</span></button><button class="btn primary" id="addBtn">＋ Add project</button><button class="menu-btn" id="menuBtn" aria-label="Open menu">☰</button></div>
+<nav class="nav" id="nav"><a class="active" href="#home">Discover</a><a href="#apps">Apps</a><a href="#tools">Tool Lab</a><a href="#store">Projects</a><a href="#collections">Collections</a><a href="#about">About</a><a href="./admin.html">Admin</a></nav>
+<div class="navright"><button class="iconbtn" id="themeBtn" title="Toggle theme" aria-label="Toggle theme">☼</button><button class="btn secondary" id="savedBtn">♡ Saved <span id="savedCount">0</span></button><button class="btn secondary" id="accountBtn">Account</button><button class="btn primary" id="addBtn">＋ Add project</button><button class="menu-btn" id="menuBtn" aria-label="Open menu">☰</button></div>
 </header>
 <main>
 <section class="wrap hero" id="home">
@@ -71,8 +115,10 @@
 <section class="wrap section" id="about"><div class="banner"><div><div class="kicker">BUILT BY RAMIZ UDDIN</div><h2>Have something worth discovering?</h2><p>NEXORA is a growing home for digital creations. Add a project to your local showcase, or connect your repository and publishing workflow to turn this into a living product catalogue.</p><div style="margin-top:19px;display:flex;gap:10px;flex-wrap:wrap"><button class="btn primary" id="bannerAdd">Add your project ↗</button><a class="btn secondary" href="https://github.com/RamizUddin404" target="_blank" rel="noopener">GitHub profile ↗</a></div></div><div class="banner-symbol" aria-hidden="true">✳</div></div></section>
 </main>
 <footer><div class="wrap footer-inner"><a class="brand" href="#" style="font-size:14px"><span class="brandmark" style="width:30px;height:30px;border-radius:10px">N</span>NEXORA</a><span>© <span id="year"></span> NEXORA · A universe of things worth building.</span><span>Designed with curiosity ✦</span></div></footer>
+</div><!-- /appShell -->
 <div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal"><div class="modal-head"><h2 id="modalTitle">Add a project</h2><button class="close" id="closeModal" aria-label="Close">✕</button></div><form id="projectForm"><div class="field"><label for="pName">Project name *</label><input id="pName" required maxlength="70" placeholder="e.g. My brilliant app"></div><div class="field-row"><div class="field"><label for="pCategory">Category *</label><select id="pCategory"><option value="AI">AI & Automation</option><option value="Web">Website</option><option value="Tools">Developer Tool</option><option value="Android">Android App</option></select></div><div class="field"><label for="pIcon">Icon / emoji</label><input id="pIcon" maxlength="4" value="✦" placeholder="✦"></div></div><div class="field"><label for="pDesc">Short description *</label><textarea id="pDesc" required maxlength="220" placeholder="What does your project do, and why is it useful?"></textarea></div><div class="field-row"><div class="field"><label for="pDemo">Live demo URL</label><input id="pDemo" type="url" placeholder="https://..."></div><div class="field"><label for="pRepo">GitHub / download URL</label><input id="pRepo" type="url" placeholder="https://github.com/..."></div></div><p class="notice">Projects added here are saved in this browser on this device. To publish changes for everyone, connect a database and an authenticated admin backend before production use.</p><button class="btn primary" type="submit" style="width:100%">Save to my showcase ↗</button></form></div></div>
 <div class="toast" id="toast" role="status"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
 <script>
 const seed=[
 {id:'myra',name:'MYRA AI',category:'AI',icon:'✧',description:'A personal voice-assistant concept exploring natural conversations and helpful automation.',gradient:'linear-gradient(135deg,#12434b,#172b45)',tag:'AI CONCEPT',demo:'',repo:''},
@@ -173,4 +219,93 @@ $('#copyTermux').onclick=async()=>{try{await navigator.clipboard.writeText($('#t
 
 $('#year').textContent=new Date().getFullYear();render();renderApps();setTermuxGuide('base');
 </script>
+
+<script>
+(() => {
+  const SUPABASE_URL = 'https://jlulzlxlyreqjpqkfijw.supabase.co';
+  const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_r-dXN6mgudXXPrFTsC20cw_HcYsrRfy';
+  const gate = document.getElementById('authGate');
+  const shell = document.getElementById('appShell');
+  const form = document.getElementById('authForm');
+  const message = document.getElementById('authMessage');
+  const emailInput = document.getElementById('authEmail');
+  const passwordInput = document.getElementById('authPassword');
+  const signInBtn = document.getElementById('signInBtn');
+  const signUpBtn = document.getElementById('signUpBtn');
+  const client = window.supabase?.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+  if (!client) { message.textContent = 'Secure sign-in is unavailable. Refresh and try again.'; return; }
+
+  async function showSignedIn(user) {
+    if (!user) { gate.hidden = false; shell.hidden = true; return; }
+    gate.hidden = true; shell.hidden = false;
+    const accountBtn = document.getElementById('accountBtn');
+    if (accountBtn) {
+      accountBtn.textContent = user.email || 'Account';
+      accountBtn.onclick = async () => {
+        if (confirm('Sign out of NEXORA?')) {
+          await client.auth.signOut();
+          location.reload();
+        }
+      };
+    }
+    // Create a standard user profile if it does not exist. Role cannot be set by signup.
+    const { data: profile } = await client.from('profiles').select('id,role,display_name').eq('id', user.id).maybeSingle();
+    if (!profile) {
+      await client.from('profiles').insert({id:user.id, display_name:user.user_metadata?.display_name || user.email?.split('@')[0] || 'NEXORA User', role:'user'});
+    }
+    // Load the database-backed catalogue after login.
+    const { data: rows, error } = await client.from('apps').select('id,name,slug,summary,description,category,icon_url,repository_url,website_url,status').eq('status','published').order('created_at',{ascending:false});
+    if (!error && Array.isArray(rows) && rows.length) {
+      const host = document.getElementById('appGrid');
+      if (host) {
+        rows.forEach(app => {
+          const card = document.createElement('article');
+          card.className = 'app-card';
+          const title = document.createElement('h3'); title.textContent = app.name;
+          const desc = document.createElement('p'); desc.textContent = app.summary || app.description || '';
+          const meta = document.createElement('span'); meta.className='tag'; meta.textContent=app.category || 'App';
+          card.append(meta,title,desc);
+          if (app.website_url || app.repository_url) {
+            const a = document.createElement('a'); a.className='btn secondary'; a.href=app.website_url || app.repository_url; a.target='_blank'; a.rel='noopener noreferrer'; a.textContent='Project details'; card.append(a);
+          }
+          host.prepend(card);
+        });
+      }
+    }
+  }
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    message.textContent = 'Signing in…';
+    signInBtn.disabled = true;
+    const { error } = await client.auth.signInWithPassword({email:emailInput.value.trim(), password:passwordInput.value});
+    signInBtn.disabled = false;
+    if (error) { message.textContent = error.message; return; }
+    message.textContent = 'Signed in successfully.';
+    const { data } = await client.auth.getUser();
+    await showSignedIn(data.user);
+  });
+
+  signUpBtn.addEventListener('click', async () => {
+    if (!form.reportValidity()) return;
+    message.textContent = 'Creating your account…';
+    signUpBtn.disabled = true;
+    const { data, error } = await client.auth.signUp({email:emailInput.value.trim(), password:passwordInput.value, options:{data:{display_name:emailInput.value.trim().split('@')[0]}}});
+    signUpBtn.disabled = false;
+    if (error) { message.textContent = error.message; return; }
+    if (data.session && data.user) {
+      message.textContent = 'Account created. Opening NEXORA…';
+      await showSignedIn(data.user);
+    } else {
+      message.textContent = 'Account created. Check your email to confirm, then sign in.';
+    }
+  });
+
+  client.auth.onAuthStateChange((_event, session) => { if (session?.user) showSignedIn(session.user); else {gate.hidden=false; shell.hidden=true;} });
+  client.auth.getSession().then(({data}) => showSignedIn(data.session?.user || null));
+  const adminLink = document.querySelector('.nav a[href="./admin.html"]');
+  if (adminLink) adminLink.addEventListener('click', (e) => { e.preventDefault(); location.href='./admin.html'; });
+})();
+</script>
+
 </body></html>
