@@ -87,7 +87,7 @@ def main():
     elif shutil.which("node"):
         for index, script in enumerate(scripts, start=1):
             result = subprocess.run(
-                ["node", "--check"],
+                ["node", "--check", "-"],
                 input=script,
                 text=True,
                 capture_output=True,
