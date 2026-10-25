@@ -232,11 +232,18 @@ let appCategory='All';
 function renderApps(){
  const q=($('#appSearch')?.value||'').toLowerCase().trim();
  const list=appCatalog.filter(a=>(appCategory==='All'||a.category===appCategory)&&[a.name,a.description,a.category].join(' ').toLowerCase().includes(q));
- $('#appGrid').innerHTML=list.map(a=>'<article class="project"><div class="project-top"><div class="appicon">'+esc(a.icon)+'</div><span class="tag">'+esc(a.category)+'</span></div><h3>'+esc(a.name)+'</h3><p>'+esc(a.description)+'</p><div class="app-status '+(a.action?'pending':'')+'">● '+(a.action?'Build / artifact check':'Setup guide available')+'</div><div class="project-actions">'+(a.apk?'<a class="btn primary" href="'+esc(a.apk)+'" target="_blank" rel="noopener" download>Download APK ↓</a>':(a.action?'<a class="btn primary" href="'+esc(a.action)+'" target="_blank" rel="noopener">Build workflow ↗</a>':'<button class="btn primary" data-appguide="'+esc(a.id)+'">Setup guide</button>'))+(a.repo?'<a class="btn secondary" href="'+esc(a.repo)+'" target="_blank" rel="noopener">Source ↗</a>':'')+'</div><button class="textlink" style="margin-top:13px" data-appguide="'+esc(a.id)+'">INSTALLATION GUIDE ↓</button></article>').join('')||'<div class="empty">No matching apps found.</div>';
+ $('#appGrid').innerHTML=list.map(a=>'<article class="project"><div class="project-top"><div class="appicon">'+esc(a.icon)+'</div><span class="tag">'+esc(a.category)+'</span></div><h3>'+esc(a.name)+'</h3><p>'+esc(a.description)+'</p><div class="app-status '+(a.action?'pending':'')+'">● '+(a.apk?'Download available':a.action?'Build guide available':'Setup guide available')+'</div><div class="project-actions"><button class="btn primary" data-appguide="'+esc(a.id)+'">Full info / install guide</button><button class="btn secondary" data-copyapp="'+esc(a.id)+'">Copy setup</button></div></article>').join('')||'<div class="empty">No matching apps found.</div>';
+ $('#appGrid').querySelectorAll('[data-appguide]').forEach(b=>b.addEventListener('click',()=>showAppGuide(b.dataset.appguide)));
+ $('#appGrid').querySelectorAll('[data-copyapp]').forEach(b=>b.addEventListener('click',()=>{const a=appCatalog.find(x=>x.id===b.dataset.copyapp);if(a)copyText(a.install,'Setup instructions copied')}));
 }
 function showAppGuide(id){
  const a=appCatalog.find(x=>x.id===id);if(!a)return;
- $('#termuxTask').value='custom';$('#termuxCommands').value=a.install;$('#termuxGuide').textContent=a.guide+' Source: '+(a.repo||'built-in NEXORA tools');
+ $('#termuxTask').value='custom';$('#termuxCommands').value=a.install;
+ $('#termuxGuide').textContent=a.guide+(a.repo?' Source URL (copy only; no redirect): '+a.repo:'');
+ let sourceButton=document.getElementById('copyGuideSource');
+ if(!sourceButton){sourceButton=document.createElement('button');sourceButton.type='button';sourceButton.id='copyGuideSource';sourceButton.className='btn secondary';sourceButton.textContent='Copy source URL';document.getElementById('copyTermux').insertAdjacentElement('afterend',sourceButton)}
+ sourceButton.style.display=a.repo?'inline-flex':'none';
+ sourceButton.onclick=()=>{if(a.repo)copyText(a.repo,'Source URL copied')};
  $('#tools').scrollIntoView({behavior:'smooth'});toast('Setup guide loaded: '+a.name);
 }
 const termuxGuides={
