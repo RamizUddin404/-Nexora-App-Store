@@ -374,15 +374,10 @@ $('#year').textContent=new Date().getFullYear();render();renderApps();setTermuxG
 (() => {
   const logout=document.getElementById('logoutBtn');
   if(logout){
-    logout.addEventListener('click',async()=>{
-      if(!confirm('Sign out of your NEXORA account?')) return;
-      logout.disabled=true;logout.textContent='Signing out…';
-      try{
-        if(window.supabase?.createClient){
-          const client=window.supabase.createClient('https://jlulzlxlyreqjpqkfijw.supabase.co','sb_publishable_r-dXN6mgudXXPrFTsC20cw_HcYsrRfy');
-          await client.auth.signOut();
-        }
-      }finally{location.reload();}
+    logout.addEventListener('click',()=>{
+      const account=document.getElementById('accountBtn');
+      if(account && account.onclick) account.click();
+      else { logout.textContent='Account session unavailable'; }
     });
   }
   const gate=document.getElementById('authGate');
