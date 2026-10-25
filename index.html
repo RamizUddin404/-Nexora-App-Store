@@ -57,6 +57,37 @@
 .nav a[href="./admin.html"],
 .section:has(#apkFile) .banner,
 #modalBackdrop{display:none!important}
+
+/* NEXORA motion system: 3D authentication, distinct project entrances and tactile buttons */
+.auth-gate{perspective:1400px;isolation:isolate}
+.auth-gate:before,.auth-gate:after{content:"";position:absolute;width:42vmax;height:42vmax;border-radius:50%;filter:blur(1px);pointer-events:none;z-index:0;opacity:.38}
+.auth-gate:before{border:1px solid #80fff033;box-shadow:0 0 80px #80fff018,inset 0 0 70px #8f9fff12;animation:nxOrbA 18s linear infinite}
+.auth-gate:after{border:1px dashed #9ba7ff36;animation:nxOrbB 25s linear infinite}
+@keyframes nxOrbA{to{transform:rotate(360deg) scale(1.05)}}@keyframes nxOrbB{to{transform:rotate(-360deg) scale(.88)}}
+.auth-card{transform-style:preserve-3d;animation:nxLoginIn .95s cubic-bezier(.2,.8,.2,1) both}
+.auth-logo,.auth-card h1,.auth-card p,.auth-form,.auth-credit{transform:translateZ(18px)}
+.auth-logo-mark{animation:nxMarkFloat 4s ease-in-out infinite;box-shadow:0 0 28px #80fff02e,inset 0 0 14px #80fff01a}
+.auth-form input{transition:transform .25s,border-color .25s,box-shadow .25s}
+.auth-form input:focus{transform:translateZ(8px) scale(1.01)}
+.auth-actions button{position:relative;overflow:hidden;transition:transform .22s,box-shadow .22s,filter .22s}
+.auth-actions button:hover{transform:translateY(-3px) translateZ(8px);box-shadow:0 12px 25px #0005;filter:brightness(1.08)}
+@keyframes nxLoginIn{from{opacity:0;transform:translateY(32px) rotateX(12deg) rotateY(-7deg) scale(.94);filter:blur(8px)}to{opacity:1;transform:translateY(0) rotateX(0) rotateY(0) scale(1);filter:blur(0)}}
+@keyframes nxMarkFloat{50%{transform:rotate(8deg) translateY(-4px)}}
+.project{animation:nxCardIn .62s cubic-bezier(.2,.8,.2,1) both;will-change:transform}
+.project:nth-child(6n+1){animation-delay:0ms}.project:nth-child(6n+2){animation-delay:55ms}.project:nth-child(6n+3){animation-delay:110ms}.project:nth-child(6n+4){animation-delay:165ms}.project:nth-child(6n+5){animation-delay:220ms}.project:nth-child(6n){animation-delay:275ms}
+@keyframes nxCardIn{from{opacity:0;transform:translateY(22px) rotateX(8deg) scale(.97);filter:blur(4px)}to{opacity:1;transform:translateY(0) rotateX(0) scale(1);filter:blur(0)}}
+.project.is-opening{animation:nxProjectOpen .48s cubic-bezier(.2,.8,.2,1) both!important;border-color:#80fff0a8;box-shadow:0 0 0 1px #80fff033,0 18px 50px #65f0e122}
+@keyframes nxProjectOpen{0%{transform:scale(1) rotateX(0)}45%{transform:scale(1.035) rotateX(-3deg) translateY(-5px)}100%{transform:scale(1) rotateX(0)}}
+.project-actions .btn,.project-actions a,.project-actions button,.btn,.iconbtn,.menu-btn{transition:transform .2s ease,box-shadow .25s ease,filter .2s ease}
+.project-actions .btn:hover,.project-actions a:hover,.project-actions button:hover{transform:translateY(-3px) scale(1.025);box-shadow:0 10px 25px #0004;filter:brightness(1.12)}
+.project-actions .btn:active,.btn:active,button:active{transform:scale(.96)}
+.modal-backdrop.show .modal{animation:nxModalIn .42s cubic-bezier(.16,1,.3,1) both}
+@keyframes nxModalIn{from{opacity:0;transform:perspective(900px) translateY(25px) rotateX(12deg) scale(.93)}to{opacity:1;transform:perspective(900px) translateY(0) rotateX(0) scale(1)}}
+#logoutBtn{white-space:nowrap;border-color:#ff7e9c45;color:#ffb5c5;background:#ff7e9c0b}
+#logoutBtn:hover{background:#ff7e9c1a;transform:translateY(-2px)}
+@media(max-width:620px){#logoutBtn{display:inline-flex;align-items:center;justify-content:center;padding:10px 11px;font-size:11px}.auth-orbit{width:85vw;height:85vw}}
+@media(prefers-reduced-motion:reduce){.auth-gate:before,.auth-gate:after,.auth-card,.auth-logo-mark,.project{animation:none!important}.auth-card{transform:none!important}}
+
 </style>
 </head>
 <body>
@@ -81,7 +112,7 @@
 <header class="wrap topbar">
 <a class="brand" href="#" aria-label="Nexora home"><span class="brandmark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 18V6l16 12V6"/><path d="M4 18h5"/></svg></span><span>NEXORA</span></a>
 <nav class="nav" id="nav"><a class="active" href="#home">Discover</a><a href="#apps">Apps</a><a href="#tools">Tool Lab</a><a href="#store">Projects</a><a href="#collections">Collections</a><a href="./contact.html">Contact</a></nav>
-<div class="navright"><button class="iconbtn" id="themeBtn" title="Toggle theme" aria-label="Toggle theme">☼</button><button class="btn secondary" id="savedBtn">♡ Saved <span id="savedCount">0</span></button><button class="btn secondary" id="accountBtn">Account</button><button class="btn primary" id="addBtn">＋ Add project</button><button class="menu-btn" id="menuBtn" aria-label="Open menu">☰</button></div>
+<div class="navright"><button class="iconbtn" id="themeBtn" title="Toggle theme" aria-label="Toggle theme">☼</button><button class="btn secondary" id="savedBtn">♡ Saved <span id="savedCount">0</span></button><button class="btn secondary" id="accountBtn">Account</button><button class="btn secondary" id="logoutBtn" type="button" title="Sign out of NEXORA">↪ Logout</button><button class="btn primary" id="addBtn">＋ Add project</button><button class="menu-btn" id="menuBtn" aria-label="Open menu">☰</button></div>
 </header>
 <main>
 <section class="wrap hero" id="home">
@@ -325,6 +356,45 @@ $('#year').textContent=new Date().getFullYear();render();renderApps();setTermuxG
 
   client.auth.onAuthStateChange((_event, session) => { if (session?.user) showSignedIn(session.user); else {gate.hidden=false; shell.hidden=true;} });
   client.auth.getSession().then(({data}) => showSignedIn(data.session?.user || null));
+})();
+</script>
+
+
+<script>
+/* Explicit logout control plus interaction motion hooks */
+(() => {
+  const logout=document.getElementById('logoutBtn');
+  if(logout){
+    logout.addEventListener('click',async()=>{
+      if(!confirm('Sign out of your NEXORA account?')) return;
+      logout.disabled=true;logout.textContent='Signing out…';
+      try{
+        if(window.supabase?.createClient){
+          const client=window.supabase.createClient('https://jlulzlxlyreqjpqkfijw.supabase.co','sb_publishable_r-dXN6mgudXXPrFTsC20cw_HcYsrRfy');
+          await client.auth.signOut();
+        }
+      }finally{location.reload();}
+    });
+  }
+  const gate=document.getElementById('authGate');
+  const card=document.querySelector('.auth-card');
+  if(gate&&card&&!matchMedia('(prefers-reduced-motion: reduce)').matches){
+    gate.addEventListener('pointermove',e=>{
+      if(e.pointerType==='touch')return;
+      const r=card.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
+      card.style.transform='perspective(1200px) rotateY('+(x*7)+'deg) rotateX('+(-y*6)+'deg) translateY(-2px)';
+    });
+    gate.addEventListener('pointerleave',()=>card.style.transform='');
+  }
+  const grid=document.getElementById('projectGrid');
+  if(grid){
+    grid.addEventListener('click',e=>{
+      const target=e.target.closest('a,button');
+      const project=e.target.closest('.project');
+      if(project){project.classList.remove('is-opening');void project.offsetWidth;project.classList.add('is-opening');setTimeout(()=>project.classList.remove('is-opening'),520);}
+      if(target){target.animate?.([{transform:'scale(1)'},{transform:'scale(.94)'},{transform:'scale(1)'}],{duration:230,easing:'ease-out'});}
+    });
+  }
 })();
 </script>
 
