@@ -78,7 +78,7 @@ async function loadDashboard(){
  client.from('profiles').select('id,display_name,role,created_at').order('created_at',{ascending:false}),
  client.from('app_versions').select('*').order('created_at',{ascending:false})
  ]);
- if(apps.error||users.error||versions.error){say('dashStatus',[apps.error,users.error,versions.error].filter(Boolean).map(e=>e.message).join(' · ');return;}
+ if(apps.error||users.error||versions.error){say('dashStatus',[apps.error,users.error,versions.error].filter(Boolean).map(e=>e.message).join(' · '));return;}
  appsCache=apps.data||[];versionsCache=versions.data||[];
  $('appCount').textContent=appsCache.length;$('userCount').textContent=(users.data||[]).length;$('releaseCount').textContent=versionsCache.length;
  $('appsRows').innerHTML=appsCache.map(a=>{const v=versionsCache.find(x=>x.app_id===a.id&&x.is_current)||versionsCache.find(x=>x.app_id===a.id);return '<tr><td><strong>'+esc(a.name)+'</strong><div class="small">'+esc(a.slug)+'</div></td><td><span class="pill">'+esc(a.status)+'</span></td><td>'+esc(v?.version||'—')+'</td><td><div class="actions"><button data-edit="'+a.id+'">Edit</button><button class="danger" data-delete="'+a.id+'">Delete</button></div></td></tr>';}).join('')||'<tr><td colspan="4">No apps in the database yet.</td></tr>';
