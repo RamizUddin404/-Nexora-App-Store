@@ -88,6 +88,15 @@
 @media(max-width:620px){#logoutBtn{display:inline-flex;align-items:center;justify-content:center;padding:10px 11px;font-size:11px}.auth-orbit{width:85vw;height:85vw}}
 @media(prefers-reduced-motion:reduce){.auth-gate:before,.auth-gate:after,.auth-card,.auth-logo-mark,.project{animation:none!important}.auth-card{transform:none!important}}
 
+
+/* Each tile gets its own signature when opened */
+.project:nth-child(3n+1).is-opening{animation-name:nxProjectOpenA!important}
+.project:nth-child(3n+2).is-opening{animation-name:nxProjectOpenB!important}
+.project:nth-child(3n).is-opening{animation-name:nxProjectOpenC!important}
+@keyframes nxProjectOpenA{0%{transform:perspective(900px) rotateY(0) scale(1)}45%{transform:perspective(900px) rotateY(-5deg) translateY(-7px) scale(1.035)}100%{transform:perspective(900px) rotateY(0) scale(1)}}
+@keyframes nxProjectOpenB{0%{transform:perspective(900px) rotateX(0) scale(1)}45%{transform:perspective(900px) rotateX(5deg) translateY(-7px) scale(1.035)}100%{transform:perspective(900px) rotateX(0) scale(1)}}
+@keyframes nxProjectOpenC{0%{transform:perspective(900px) rotateZ(0) scale(1)}45%{transform:perspective(900px) rotateZ(1.5deg) translateY(-7px) scale(1.035)}100%{transform:perspective(900px) rotateZ(0) scale(1)}}
+
 </style>
 </head>
 <body>
