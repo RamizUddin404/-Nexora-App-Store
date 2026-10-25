@@ -1,0 +1,54 @@
+name: Submit an app or tool
+description: Suggest an app, APK, web app or Termux tool for NEXORA review
+title: "[App submission]: "
+labels: ["app-submission"]
+body:
+  - type: markdown
+    attributes:
+      value: "Do not upload secrets or personal data. Submissions are reviewed before they appear in the public catalogue."
+  - type: input
+    id: name
+    attributes:
+      label: App or tool name
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - Android APK
+        - Web app
+        - Termux / command line
+        - Windows / Linux desktop
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Public source repository URL
+      placeholder: https://github.com/owner/repository
+    validations:
+      required: true
+  - type: input
+    id: release
+    attributes:
+      label: Public release / download URL (if available)
+      placeholder: https://github.com/owner/repository/releases
+    validations:
+      required: false
+  - type: textarea
+    id: features
+    attributes:
+      label: What does it do?
+      description: Include setup requirements, permissions and the intended audience.
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Testing and security notes
+      description: Include version, checksum, known limitations and whether you own or maintain this project.
+    validations:
+      required: true
