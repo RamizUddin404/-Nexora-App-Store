@@ -105,6 +105,9 @@
 #projectForm h3{font-family:'Space Grotesk';font-size:16px;margin:18px 0 8px}
 #projectInstallText{font:12px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace;resize:vertical}
 
+/* Public storefront: never navigate away to GitHub; repository URLs are displayed as copyable text in guides. */
+a[href*="github.com"],a[href*="githubusercontent.com"]{display:none!important}
+
 </style>
 </head>
 <body>
