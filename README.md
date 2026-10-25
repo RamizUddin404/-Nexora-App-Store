@@ -57,7 +57,7 @@ No Node.js, package manager, build step, or API key is required for the current 
 pkg update
 pkg install python
 git clone https://github.com/RamizUddin404/-Nexora-App-Store.git
-cd -Nexora-App-Store
+cd -- -Nexora-App-Store
 python -m http.server 8080
 ```
 
@@ -86,7 +86,7 @@ Every push to `main` triggers the deployment workflow. A manual run is also avai
 
 ## 🧪 Quality checks
 
-A lightweight HTML check runs before publishing to catch malformed essentials, duplicate static IDs, and missing local files. CodeQL runs separately for repository analysis. These checks help catch common issues; they do not replace cross-browser, accessibility, or real-device testing.
+A lightweight HTML check runs before publishing to catch missing essentials, duplicate static IDs, and missing local files. Run it locally with `python scripts/check_site.py`. CodeQL runs separately for repository analysis. These checks help catch common issues; they do not replace cross-browser, accessibility, or real-device testing.
 
 ## 🔒 Current scope and limitations
 
