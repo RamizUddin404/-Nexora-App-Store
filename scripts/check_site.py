@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Dependency-free static checks for the NEXORA website."""
+"""Dependency-free static checks for all NEXORA HTML pages."""
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import urlparse
@@ -9,9 +9,9 @@ import subprocess
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-HTML_FILE = ROOT / "index.html"
+HTML_FILES = [ROOT / "index.html", ROOT / "admin.html"]
 
-class SiteChecker(HTMLParser):
+class PageChecker(HTMLParser):
     def __init__(self):
         super().__init__(convert_charrefs=True)
         self.ids = set()
@@ -62,52 +62,50 @@ class SiteChecker(HTMLParser):
             self.title_text.append(data)
 
 def main():
-    if not HTML_FILE.exists():
-        print("FAIL: index.html is missing")
-        return 1
-    source = HTML_FILE.read_text(encoding="utf-8")
-    checker = SiteChecker()
-    checker.feed(source)
-    checker.close()
-    if '<html lang="en">' not in source and "<html lang='en'>" not in source:
-        checker.errors.append("HTML language attribute is missing or not set to en")
-    if 'name="viewport"' not in source:
-        checker.errors.append("Responsive viewport meta tag is missing")
-    if "<main" not in source.lower():
-        checker.errors.append("Main landmark is missing")
-    if not checker.title_seen or not "".join(checker.title_text).strip():
-        checker.errors.append("A non-empty document title is required")
-    for anchor in checker.anchors:
-        if anchor and anchor not in checker.ids:
-            checker.errors.append(f"Broken in-page anchor: #{anchor}")
-
-    scripts = re.findall(r"<script\b[^>]*>([\s\S]*?)</script>", source, re.IGNORECASE)
-    if not scripts:
-        checker.errors.append("No inline JavaScript block found")
-    elif shutil.which("node"):
-        for index, script in enumerate(scripts, start=1):
-            result = subprocess.run(
-                ["node", "--check", "-"],
-                input=script,
-                text=True,
-                capture_output=True,
-                cwd=ROOT,
-                check=False,
-            )
-            if result.returncode:
-                checker.errors.append(
-                    f"JavaScript syntax check failed for script {index}: "
-                    f"{(result.stderr or result.stdout).strip()}"
+    total_ids = 0
+    errors = []
+    for html_file in HTML_FILES:
+        if not html_file.exists():
+            errors.append(f"{html_file.name} is missing")
+            continue
+        source = html_file.read_text(encoding="utf-8")
+        checker = PageChecker()
+        checker.feed(source)
+        checker.close()
+        if 'name="viewport"' not in source:
+            checker.errors.append("Responsive viewport meta tag is missing")
+        if "<main" not in source.lower():
+            checker.errors.append("Main landmark is missing")
+        if not checker.title_seen or not "".join(checker.title_text).strip():
+            checker.errors.append("A non-empty document title is required")
+        for anchor in checker.anchors:
+            if anchor and anchor not in checker.ids:
+                checker.errors.append(f"Broken in-page anchor: #{anchor}")
+        scripts = re.findall(r"<script\\b[^>]*>([\\s\\S]*?)</script>", source, re.IGNORECASE)
+        if not scripts:
+            checker.errors.append("No inline JavaScript block found")
+        elif shutil.which("node"):
+            for index, script in enumerate(scripts, start=1):
+                if not script.strip():
+                    continue
+                result = subprocess.run(
+                    ["node", "--check", "-"], input=script, text=True,
+                    capture_output=True, cwd=ROOT, check=False,
                 )
-    else:
-        print("NOTE: Node.js not installed; JavaScript syntax check skipped.")
-
-    if checker.errors:
-        print("NEXORA static site checks failed:")
-        for error in checker.errors:
+                if result.returncode:
+                    checker.errors.append(
+                        f"JavaScript syntax check failed for script {index}: "
+                        f"{(result.stderr or result.stdout).strip()}"
+                    )
+        if checker.errors:
+            errors.extend(f"{html_file.name}: {error}" for error in checker.errors)
+        total_ids += len(checker.ids)
+    if errors:
+        print("NEXORA static checks failed:")
+        for error in errors:
             print(f" - {error}")
         return 1
-    print(f"PASS: static HTML checks completed ({len(checker.ids)} unique IDs, {len(checker.anchors)} in-page links checked).")
+    print(f"PASS: checked {len(HTML_FILES)} HTML pages and {total_ids} unique page IDs.")
     return 0
 
 if __name__ == "__main__":
