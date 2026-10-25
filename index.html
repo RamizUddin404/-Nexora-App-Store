@@ -49,6 +49,13 @@
 @keyframes authSpin{to{transform:translate(-50%,-50%) rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){.auth-orbit{animation:none}}
 
+
+/* End-user mode: catalogue and browser tools only; publishing is admin-managed. */
+#addBtn,#submitProject,#bannerAdd,
+.toolbar a[href*="app_submission.yml"],
+.nav a[href="./admin.html"],
+.section:has(#apkFile) .banner{display:none!important}
+
 </style>
 </head>
 <body>
