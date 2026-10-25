@@ -51,11 +51,12 @@
 
 
 /* End-user mode: catalogue and browser tools only; publishing is admin-managed. */
-#addBtn,#submitProject,#bannerAdd,
+/* Public users can browse, search, filter, view, download and use tools only. */
+#addBtn,#submitProject,#bannerAdd,#savedBtn,#themeBtn,
 .toolbar a[href*="app_submission.yml"],
 .nav a[href="./admin.html"],
-.section:has(#apkFile) .banner{display:none!important}
-
+.section:has(#apkFile) .banner,
+#modalBackdrop{display:none!important}
 </style>
 </head>
 <body>
@@ -152,7 +153,7 @@ $('#searchInput').addEventListener('input',render);
 $('#resetFilters').onclick=()=>{category='All';savedOnly=false;$('#searchInput').value='';$$('[data-cat]').forEach(b=>b.classList.toggle('active',b.dataset.cat==='All'));render()};
 $('#projectGrid').addEventListener('click',e=>{const s=e.target.closest('[data-save]');if(s){const id=s.dataset.save;saved.has(id)?saved.delete(id):saved.add(id);persist();render();return}const d=e.target.closest('[data-info]');if(d){const p=projects.find(x=>x.id===d.dataset.info);if(p)showDetails(p)}});
 function showDetails(p){const demo=safeUrl(p.demo),repo=safeUrl(p.repo);$('#modalTitle').textContent=p.name;$('#projectForm').innerHTML='<div style="font-size:40px;margin-bottom:12px">'+esc(p.icon||'✦')+'</div><div class="eyebrow">'+esc(catNames[p.category]||'PROJECT')+'</div><p style="line-height:1.8;color:var(--muted);margin-top:16px">'+esc(p.description)+'</p><div style="display:flex;gap:10px;flex-wrap:wrap">'+(demo?'<a class="btn primary" href="'+esc(demo)+'" target="_blank" rel="noopener">Open demo ↗</a>':'')+(repo?'<a class="btn secondary" href="'+esc(repo)+'" target="_blank" rel="noopener">View source ↗</a>':'')+'<button type="button" class="btn secondary" id="detailSave">'+(saved.has(p.id)?'♥ Saved':'♡ Save project')+'</button></div><p class="notice">Project information is provided by its creator. Check links and permissions before downloading or running software.</p>';$('#detailSave').onclick=()=>{saved.has(p.id)?saved.delete(p.id):saved.add(p.id);persist();closeModal();render();toast('Saved projects updated')};openModal('details')}
-$('#addBtn').onclick=openModal;$('#submitProject').onclick=openModal;$('#bannerAdd').onclick=openModal;$('#closeModal').onclick=closeModal;$('#modalBackdrop').addEventListener('click',e=>{if(e.target===$('#modalBackdrop'))closeModal()});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+['addBtn','submitProject','bannerAdd'].forEach(id=>{const el=document.getElementById(id);if(el){el.disabled=true;el.onclick=null;}});$('#closeModal').onclick=closeModal;$('#modalBackdrop').addEventListener('click',e=>{if(e.target===$('#modalBackdrop'))closeModal()});document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 $('#projectForm').addEventListener('submit',e=>{e.preventDefault();if(!$('#pName'))return;const name=$('#pName').value.trim(),desc=$('#pDesc').value.trim();if(!name||!desc)return;const p={id:'custom-'+Date.now(),name,category:$('#pCategory').value,icon:$('#pIcon').value.trim()||'✦',description:desc,gradient:'linear-gradient(135deg,#17424a,#30264e)',tag:'COMMUNITY PROJECT',demo:safeUrl($('#pDemo').value),repo:safeUrl($('#pRepo').value)};projects.unshift(p);persist();closeModal();$('#projectForm').reset();$('#pIcon').value='✦';category='All';savedOnly=false;$$('[data-cat]').forEach(b=>b.classList.toggle('active',b.dataset.cat==='All'));render();toast('Project added to this browser showcase');$('#store').scrollIntoView({behavior:'smooth'})});
 $('#savedBtn').onclick=()=>{savedOnly=!savedOnly;category='All';$$('[data-cat]').forEach(b=>b.classList.toggle('active',b.dataset.cat==='All'));render();$('#store').scrollIntoView({behavior:'smooth'});toast(savedOnly?'Showing saved projects':'Showing all projects')};
 $('#themeBtn').onclick=()=>{document.body.classList.toggle('light');try{localStorage.setItem('nexora-theme',document.body.classList.contains('light')?'light':'dark')}catch{}};
