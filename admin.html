@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#080b14"><title>NEXORA Admin Console</title>
+<style>
+:root{color-scheme:dark;--bg:#080b14;--panel:#11182b;--line:#293451;--text:#eff4ff;--muted:#9aa8c7;--mint:#80fff0;--blue:#a0aaff;--danger:#ff7e9c}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 10% 0%,#1a2a51 0,transparent 42%),radial-gradient(ellipse at 100% 80%,#102e36 0,transparent 38%),var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+a{color:var(--mint)}button,input,textarea,select{font:inherit}button{cursor:pointer;border:1px solid var(--line);background:#1b2742;color:var(--text);padding:11px 15px;border-radius:12px;font-weight:700}button.primary{background:linear-gradient(110deg,var(--mint),var(--blue));color:#09101b;border:0}button.danger{color:var(--danger)}button:disabled{opacity:.55;cursor:wait}
+.wrap{width:min(1180px,calc(100% - 32px));margin:auto}.top{display:flex;align-items:center;justify-content:space-between;padding:22px 0;gap:15px}.brand{font-weight:950;letter-spacing:.18em;font-size:20px}.brand b{display:inline-grid;place-items:center;width:38px;height:38px;border:1px solid #4f9c9c;border-radius:12px;color:var(--mint);margin-right:10px;transform:rotate(-7deg)}
+.card{border:1px solid rgba(155,178,255,.2);background:rgba(17,24,43,.86);backdrop-filter:blur(18px);border-radius:22px;padding:clamp(18px,3vw,28px);box-shadow:0 20px 65px #0003}
+h1{font-size:clamp(30px,5vw,46px);line-height:1.08;letter-spacing:-.04em;margin:0 0 10px}h1 span{background:linear-gradient(100deg,var(--mint),var(--blue));color:transparent;background-clip:text}h2{margin:0 0 16px;font-size:21px}p{color:var(--muted)}.sub{color:var(--muted);margin:0 0 25px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:22px 0 48px}.formgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{display:grid;gap:6px}.field.full{grid-column:1/-1}label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}input,textarea,select{width:100%;background:#090f1e;border:1px solid var(--line);color:var(--text);padding:12px;border-radius:11px;outline:none}input:focus,textarea:focus,select:focus{border-color:var(--mint)}textarea{min-height:88px;resize:vertical}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}.status{min-height:24px;color:var(--mint);overflow-wrap:anywhere}.hidden{display:none!important}.tablewrap{overflow:auto}table{border-collapse:collapse;width:100%;min-width:650px}th,td{text-align:left;padding:12px;border-bottom:1px solid var(--line);vertical-align:top}th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}.pill{font-size:11px;border:1px solid var(--line);border-radius:99px;padding:4px 8px;color:var(--mint)}.small{font-size:12px;color:var(--muted)}.login{max-width:470px;margin:8vh auto}.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:22px 0}.stat{border:1px solid var(--line);border-radius:15px;padding:16px;background:#0c1324}.stat strong{font-size:25px;display:block}.stat span{font-size:12px;color:var(--muted)}footer{padding:24px 0;color:var(--muted);font-size:12px;border-top:1px solid #ffffff10}
+@media(max-width:760px){.grid,.formgrid{grid-template-columns:1fr}.stats{grid-template-columns:1fr}.top{align-items:flex-start;flex-direction:column}.field.full{grid-column:auto}}
+</style>
+</head>
+<body>
+<header class="wrap top"><a href="./index.html" class="brand" style="color:inherit;text-decoration:none"><b>N</b>NEXORA <span class="small">/ ADMIN</span></a><div class="actions" style="margin:0"><a href="./index.html">← Storefront</a><button id="signOut" class="hidden">Sign out</button></div></header>
+<main class="wrap">
+<section id="loginPanel" class="card login">
+<div class="pill">RESTRICTED ACCESS</div><h1 style="margin-top:16px">Admin <span>console.</span></h1><p>Sign in with your NEXORA account. Only accounts explicitly assigned the admin role can manage the store.</p>
+<form id="loginForm" class="formgrid"><div class="field full"><label for="email">Email</label><input id="email" type="email" autocomplete="email" required></div><div class="field full"><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required></div><div class="field full"><button class="primary" id="loginBtn" type="submit">Sign in securely</button></div></form><div id="loginStatus" class="status" role="status"></div><p class="small">Not an admin yet? Create a normal account on the <a href="./index.html">storefront</a> first, then have the owner grant admin access securely. There is no default admin password.</p>
+</section>
+<section id="dashboard" class="hidden">
+<div class="card"><div class="pill">NEXORA CONTROL ROOM</div><h1 style="margin-top:15px">Manage your <span>universe.</span></h1><p>Publish apps, upload APK releases to private storage, edit metadata, archive or remove listings, and review registered profiles.</p><div class="stats"><div class="stat"><strong id="appCount">—</strong><span>CATALOGUE ITEMS</span></div><div class="stat"><strong id="userCount">—</strong><span>USER PROFILES</span></div><div class="stat"><strong id="releaseCount">—</strong><span>APK RELEASES</span></div></div><div id="dashStatus" class="status" role="status"></div></div>
+<div class="grid">
+<section class="card"><h2 id="formTitle">Add an app</h2><form id="appForm" class="formgrid">
+<input type="hidden" id="appId">
+<div class="field"><label for="appName">App name *</label><input id="appName" required maxlength="100"></div>
+<div class="field"><label for="appSlug">URL slug *</label><input id="appSlug" required pattern="[a-z0-9-]+" maxlength="120" placeholder="my-awesome-app"></div>
+<div class="field"><label for="category">Category</label><select id="category"><option>Utilities</option><option>AI</option><option>Developer Tools</option><option>Education</option><option>Productivity</option><option>Media</option><option>Community</option><option>Games</option></select></div>
+<div class="field"><label for="appStatus">Visibility</label><select id="appStatus"><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select></div>
+<div class="field full"><label for="summary">Short summary *</label><input id="summary" required maxlength="240"></div>
+<div class="field full"><label for="description">Full description</label><textarea id="description"></textarea></div>
+<div class="field"><label for="repoUrl">GitHub repository URL</label><input id="repoUrl" type="url" placeholder="https://github.com/..."></div>
+<div class="field"><label for="websiteUrl">Project website URL</label><input id="websiteUrl" type="url" placeholder="https://..."></div>
+<div class="field"><label for="version">Release version</label><input id="version" placeholder="1.0.0"></div>
+<div class="field"><label for="androidMin">Minimum Android</label><input id="androidMin" placeholder="Android 9"></div>
+<div class="field full"><label for="changelog">Release notes</label><textarea id="changelog" placeholder="What's new in this version?"></textarea></div>
+<div class="field full"><label for="apkFile">APK file (optional; max 100 MB)</label><input id="apkFile" type="file" accept=".apk,application/vnd.android.package-archive,application/octet-stream"><span class="small">Uploads go to private Supabase Storage. Never upload files you do not own or have permission to distribute.</span></div>
+<div class="field full actions"><button class="primary" type="submit" id="saveApp">Save app</button><button type="button" id="resetForm">Clear form</button></div>
+</form></section>
+<section class="card"><h2>App catalogue</h2><p class="small">Select Edit to change metadata. Delete removes the app and its recorded release files from NEXORA storage.</p><div class="tablewrap"><table><thead><tr><th>App</th><th>Status</th><th>Latest release</th><th>Actions</th></tr></thead><tbody id="appsRows"><tr><td colspan="4">Loading…</td></tr></tbody></table></div></section>
+<section class="card" style="grid-column:1/-1"><h2>Registered profiles</h2><p class="small">Only profile details permitted by the database security policies are shown.</p><div class="tablewrap"><table><thead><tr><th>Display name</th><th>User ID</th><th>Role</th><th>Created</th></tr></thead><tbody id="usersRows"><tr><td colspan="4">Loading…</td></tr></tbody></table></div></section>
+</div>
+</section>
+</main>
+<footer><div class="wrap">Created by <strong>Ramiz Uddin</strong> · NEXORA Admin Console · Protect your account and never share admin credentials.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4"></script>
+<script>
+(() => {
+const SUPABASE_URL='https://jlulzlxlyreqjpqkfijw.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_r-dXN6mgudXXPrFTsC20cw_HcYsrRfy';
+const client=window.supabase?.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+const $=id=>document.getElementById(id);
+let activeUser=null, appsCache=[], versionsCache=[];
+const say=(id,msg)=>$(id).textContent=msg;
+function clearForm(){ $('appForm').reset();$('appId').value='';$('formTitle').textContent='Add an app';$('saveApp').textContent='Save app'; }
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+async function checkAuth(){
+ if(!client){say('loginStatus','Authentication library failed to load. Refresh this page.');return;}
+ const {data:{session}}=await client.auth.getSession();
+ if(!session?.user){$('loginPanel').classList.remove('hidden');$('dashboard').classList.add('hidden');$('signOut').classList.add('hidden');return;}
+ activeUser=session.user;
+ const {data:profile,error}=await client.from('profiles').select('id,role,display_name').eq('id',activeUser.id).maybeSingle();
+ if(error){say('loginStatus','Could not verify your role: '+error.message);return;}
+ if(!profile){await client.from('profiles').insert({id:activeUser.id,display_name:activeUser.email?.split('@')[0]||'NEXORA User',role:'user'});say('loginStatus','Your profile is ready, but it does not have admin permissions yet.');return;}
+ if(profile.role!=='admin'){say('loginStatus','Signed in, but this account does not have admin access. Contact the site owner.');await client.auth.signOut();return;}
+ $('loginPanel').classList.add('hidden');$('dashboard').classList.remove('hidden');$('signOut').classList.remove('hidden');await loadDashboard();
+}
+$('loginForm').addEventListener('submit',async e=>{e.preventDefault();$('loginBtn').disabled=true;say('loginStatus','Verifying account…');const {error}=await client.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});$('loginBtn').disabled=false;if(error){say('loginStatus',error.message);return;}await checkAuth();});
+$('signOut').addEventListener('click',async()=>{await client.auth.signOut();location.reload();});
+$('resetForm').addEventListener('click',clearForm);
+$('appName').addEventListener('input',()=>{if(!$('appId').value)$('appSlug').value=$('appName').value.normalize('NFKD').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');});
+async function loadDashboard(){
+ say('dashStatus','Loading live database data…');
+ const [apps,users,versions]=await Promise.all([
+ client.from('apps').select('*').order('created_at',{ascending:false}),
+ client.from('profiles').select('id,display_name,role,created_at').order('created_at',{ascending:false}),
+ client.from('app_versions').select('*').order('created_at',{ascending:false})
+ ]);
+ if(apps.error||users.error||versions.error){say('dashStatus',[apps.error,users.error,versions.error].filter(Boolean).map(e=>e.message).join(' · ');return;}
+ appsCache=apps.data||[];versionsCache=versions.data||[];
+ $('appCount').textContent=appsCache.length;$('userCount').textContent=(users.data||[]).length;$('releaseCount').textContent=versionsCache.length;
+ $('appsRows').innerHTML=appsCache.map(a=>{const v=versionsCache.find(x=>x.app_id===a.id&&x.is_current)||versionsCache.find(x=>x.app_id===a.id);return '<tr><td><strong>'+esc(a.name)+'</strong><div class="small">'+esc(a.slug)+'</div></td><td><span class="pill">'+esc(a.status)+'</span></td><td>'+esc(v?.version||'—')+'</td><td><div class="actions"><button data-edit="'+a.id+'">Edit</button><button class="danger" data-delete="'+a.id+'">Delete</button></div></td></tr>';}).join('')||'<tr><td colspan="4">No apps in the database yet.</td></tr>';
+ $('usersRows').innerHTML=(users.data||[]).map(u=>'<tr><td>'+esc(u.display_name||'—')+'</td><td><code>'+esc(u.id)+'</code></td><td><span class="pill">'+esc(u.role)+'</span></td><td>'+esc(u.created_at?new Date(u.created_at).toLocaleDateString():'—')+'</td></tr>').join('')||'<tr><td colspan="4">No user profiles yet.</td></tr>';
+ $('appsRows').querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>editApp(b.dataset.edit)));
+ $('appsRows').querySelectorAll('[data-delete]').forEach(b=>b.addEventListener('click',()=>deleteApp(b.dataset.delete)));
+ say('dashStatus','Database connected. Changes are saved to NEXORA.');
+}
+function editApp(id){const a=appsCache.find(x=>x.id===id);if(!a)return;$('appId').value=a.id;$('appName').value=a.name;$('appSlug').value=a.slug;$('category').value=a.category||'Utilities';$('appStatus').value=a.status;$('summary').value=a.summary||'';$('description').value=a.description||'';$('repoUrl').value=a.repository_url||'';$('websiteUrl').value=a.website_url||'';$('formTitle').textContent='Edit '+a.name;$('saveApp').textContent='Update app';window.scrollTo({top:0,behavior:'smooth'});}
+async function deleteApp(id){const a=appsCache.find(x=>x.id===id);if(!a||!confirm('Delete "'+a.name+'" and its recorded APK files from NEXORA? This cannot be undone.'))return;say('dashStatus','Removing app and stored release files…');const versions=versionsCache.filter(v=>v.app_id===id&&v.storage_path).map(v=>v.storage_path);if(versions.length){const {error}=await client.storage.from('nexora-apks').remove(versions);if(error){say('dashStatus','Could not remove stored APKs: '+error.message);return;}}const {error}=await client.from('apps').delete().eq('id',id);if(error){say('dashStatus','Delete failed: '+error.message);return;}clearForm();await loadDashboard();}
+$('appForm').addEventListener('submit',async e=>{
+ e.preventDefault();const btn=$('saveApp');btn.disabled=true;say('dashStatus','Saving app metadata…');
+ const id=$('appId').value;const payload={name:$('appName').value.trim(),slug:$('appSlug').value.trim(),category:$('category').value,status:$('appStatus').value,summary:$('summary').value.trim(),description:$('description').value.trim(),repository_url:$('repoUrl').value.trim()||null,website_url:$('websiteUrl').value.trim()||null,updated_at:new Date().toISOString()};
+ let appId=id;
+ let result;
+ if(id) result=await client.from('apps').update(payload).eq('id',id).select().single();
+ else result=await client.from('apps').insert({...payload,created_by:activeUser.id}).select().single();
+ if(result.error){say('dashStatus','Save failed: '+result.error.message);btn.disabled=false;return;}
+ appId=result.data.id;
+ const file=$('apkFile').files[0];
+ if(file){
+  if(!file.name.toLowerCase().endsWith('.apk')){say('dashStatus','Choose a valid .apk file.');btn.disabled=false;return;}
+  if(file.size>104857600){say('dashStatus','APK exceeds the 100 MB storage limit.');btn.disabled=false;return;}
+  const version=$('version').value.trim();if(!version){say('dashStatus','Enter a release version before uploading an APK.');btn.disabled=false;return;}
+  const path=appId+'/'+crypto.randomUUID()+'/'+file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+  const {error:upErr}=await client.storage.from('nexora-apks').upload(path,file,{contentType:'application/vnd.android.package-archive',upsert:false});
+  if(upErr){say('dashStatus','Metadata saved, but APK upload failed: '+upErr.message);btn.disabled=false;await loadDashboard();return;}
+  const digest=await crypto.subtle.digest('SHA-256',await file.arrayBuffer());
+  const sha256=Array.from(new Uint8Array(digest)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  await client.from('app_versions').update({is_current:false}).eq('app_id',appId);
+  const {error:verErr}=await client.from('app_versions').insert({app_id:appId,version,changelog:$('changelog').value.trim(),storage_path:path,file_name:file.name,file_size:file.size,sha256,min_android:$('androidMin').value.trim()||null,is_current:true});
+  if(verErr){say('dashStatus','APK uploaded, but release record failed: '+verErr.message);btn.disabled=false;await loadDashboard();return;}
+ }
+ clearForm();btn.disabled=false;await loadDashboard();say('dashStatus','App saved successfully. '+(file?'APK uploaded and version recorded.':''));
+});
+checkAuth();
+})();
+</script>
+</body>
+</html>
