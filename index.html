@@ -257,14 +257,28 @@ $('#year').textContent=new Date().getFullYear();render();renderApps();setTermuxG
     const { data: rows, error } = await client.from('apps').select('id,name,slug,summary,description,category,icon_url,repository_url,website_url,status').eq('status','published').order('created_at',{ascending:false});
     if (!error && Array.isArray(rows) && rows.length) {
       const host = document.getElementById('appGrid');
+      const { data: releases } = await client.from('app_versions').select('app_id,version,storage_path,file_name,file_size,is_current').in('app_id', rows.map(app => app.id)).eq('is_current', true);
       if (host) {
         rows.forEach(app => {
+          if (host.querySelector('[data-database-app="' + app.id + '"]')) return;
           const card = document.createElement('article');
-          card.className = 'app-card';
+          card.className = 'app-card'; card.dataset.databaseApp = app.id;
           const title = document.createElement('h3'); title.textContent = app.name;
           const desc = document.createElement('p'); desc.textContent = app.summary || app.description || '';
           const meta = document.createElement('span'); meta.className='tag'; meta.textContent=app.category || 'App';
           card.append(meta,title,desc);
+          const release = (releases || []).find(item => item.app_id === app.id);
+          if (release?.storage_path) {
+            const download = document.createElement('button'); download.className='btn primary'; download.textContent='Download APK' + (release.version ? ' · ' + release.version : '');
+            download.addEventListener('click', async () => {
+              download.disabled = true; download.textContent = 'Preparing download…';
+              const { data: signed, error: signedError } = await client.storage.from('nexora-apks').createSignedUrl(release.storage_path, 90);
+              if (signedError || !signed?.signedUrl) { download.disabled=false; download.textContent='Download APK'; message.textContent=signedError?.message || 'Could not prepare download.'; return; }
+              const a=document.createElement('a'); a.href=signed.signedUrl; a.download=release.file_name || (app.slug + '.apk'); a.rel='noopener'; document.body.appendChild(a); a.click(); a.remove();
+              download.disabled=false; download.textContent='Download APK' + (release.version ? ' · ' + release.version : '');
+            });
+            card.append(download);
+          }
           if (app.website_url || app.repository_url) {
             const a = document.createElement('a'); a.className='btn secondary'; a.href=app.website_url || app.repository_url; a.target='_blank'; a.rel='noopener noreferrer'; a.textContent='Project details'; card.append(a);
           }
