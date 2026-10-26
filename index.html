@@ -248,6 +248,21 @@ function renderApps(){
  const q=($('#appSearch')?.value||'').toLowerCase().trim();
  const list=appCatalog.filter(a=>(appCategory==='All'||a.category===appCategory)&&[a.name,a.description,a.category].join(' ').toLowerCase().includes(q));
  $('#appGrid').innerHTML=list.map(a=>'<article class="project"><div class="project-top"><div class="appicon">'+esc(a.icon)+'</div><span class="tag">'+esc(a.category)+'</span></div><h3>'+esc(a.name)+'</h3><p>'+esc(a.description)+'</p><div class="app-status '+(a.action?'pending':'')+'">● '+(a.apk?'Download available':a.action?'Build guide available':'Setup guide available')+'</div><div class="project-actions"><button class="btn primary" data-appguide="'+esc(a.id)+'">View Details</button><button class="btn secondary" data-copyapp="'+esc(a.id)+'">Copy commands</button></div></article>').join('')||'<div class="empty">No matching apps found.</div>';
+ // Bind each visible control directly after rendering, avoiding fragile delegated/capture listeners.
+ const host=$('#appGrid');
+ host.querySelectorAll('[data-appguide]').forEach(button=>{
+   button.addEventListener('click',event=>{
+     event.preventDefault();event.stopPropagation();
+     showAppGuide(button.dataset.appguide);
+   });
+ });
+ host.querySelectorAll('[data-copyapp]').forEach(button=>{
+   button.addEventListener('click',event=>{
+     event.preventDefault();event.stopPropagation();
+     const item=appCatalog.find(x=>x.id===button.dataset.copyapp);
+     if(item)copyText(item.install||'No commands available.','Setup commands copied');
+   });
+ });
 }
 function showAppGuide(id){
  const a=appCatalog.find(x=>x.id===id);if(!a)return;
@@ -282,7 +297,7 @@ function setTermuxGuide(key){const g=termuxGuides[key]||termuxGuides.base;$('#te
 $('#apkFile').addEventListener('change',async e=>{const file=e.target.files?.[0];const out=$('#apkReport');if(!file){out.textContent='No APK selected.';return}if(!file.name.toLowerCase().endsWith('.apk')){out.textContent='Please select an .apk file.';e.target.value='';return}out.textContent='Calculating checksum locally…';try{const bytes=await file.arrayBuffer();const digest=await crypto.subtle.digest('SHA-256',bytes);const hash=Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,'0')).join('');out.textContent='File: '+file.name+' · Size: '+(file.size/1024/1024).toFixed(2)+' MB · SHA-256: '+hash+' · This file has not been uploaded.'}catch(err){out.textContent='Could not read file or calculate SHA-256. Try using HTTPS and a modern browser.'}});
 $('#appSearch').addEventListener('input',renderApps);
 $('#appChips').addEventListener('click',e=>{const b=e.target.closest('[data-appcat]');if(!b)return;appCategory=b.dataset.appcat;$$('[data-appcat]').forEach(x=>x.classList.toggle('active',x===b));renderApps()});
-$('#appGrid').addEventListener('click',e=>{const guide=e.target.closest('[data-appguide]');if(guide){showAppGuide(guide.dataset.appguide);return}const copy=e.target.closest('[data-copyapp]');if(copy){const a=appCatalog.find(x=>x.id===copy.dataset.copyapp);if(a)copyText(a.install||'No commands available.','Setup commands copied')}});
+// App Details and Copy controls are bound directly inside renderApps().
 $('#base64Encode').onclick=()=>{try{const bytes=new TextEncoder().encode($('#base64Input').value);let binary='';bytes.forEach(b=>binary+=String.fromCharCode(b));$('#base64Output').value=btoa(binary)}catch(e){$('#base64Output').value='Encoding failed: '+e.message}};
 $('#base64Decode').onclick=()=>{try{const binary=atob($('#base64Input').value.trim());const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));$('#base64Output').value=new TextDecoder('utf-8',{fatal:true}).decode(bytes)}catch(e){$('#base64Output').value='Invalid Base64 or UTF-8 input.'}};
 $('#jsonFormat').onclick=()=>{try{$('#jsonOutput').value=JSON.stringify(JSON.parse($('#jsonInput').value),null,2)}catch(e){$('#jsonOutput').value='Invalid JSON: '+e.message}};
@@ -352,15 +367,7 @@ $('#year').textContent=new Date().getFullYear();render();renderApps();setTermuxG
   set('caseSlug', () => put('caseOutput',val('caseInput').normalize('NFKD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')));
   set('copyTermux', () => copy(val('termuxCommands'),'Commands copied'));
   const task=byId('termuxTask');if(task)task.onchange=()=>{if(typeof setTermuxGuide==='function')setTermuxGuide(task.value);};
-  const appGrid=byId('appGrid');
-  if(appGrid) appGrid.addEventListener('click',e=>{
-    const detail=e.target.closest('[data-appguide]');
-    const cp=e.target.closest('[data-copyapp]');
-    if(!detail&&!cp)return;
-    e.stopImmediatePropagation();
-    if(detail&&typeof showAppGuide==='function')showAppGuide(detail.dataset.appguide);
-    else if(cp&&typeof appCatalog!=='undefined') { const a=appCatalog.find(x=>x.id===cp.dataset.copyapp);if(a)copy(a.install||'No commands available.','Commands copied'); }
-  },true);
+  // App cards bind their own click handlers in renderApps().
   document.addEventListener('click',e=>{
     if(e.target.closest('#appGuideModal #copyAppGuideCommands')) { e.stopPropagation();copy(byId('appGuideCommands')?.value||'','Setup commands copied'); }
   },true);
