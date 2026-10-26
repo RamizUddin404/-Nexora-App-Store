@@ -359,7 +359,7 @@ $('#year').textContent=new Date().getFullYear();render();renderApps();setTermuxG
     if(!detail&&!cp)return;
     e.stopImmediatePropagation();
     if(detail&&typeof showAppGuide==='function')showAppGuide(detail.dataset.appguide);
-    else if(cp&&Array.isArray(window.appCatalog)) { const a=window.appCatalog.find(x=>x.id===cp.dataset.copyapp);if(a)copy(a.install||'No commands available.','Commands copied'); }
+    else if(cp&&typeof appCatalog!=='undefined') { const a=appCatalog.find(x=>x.id===cp.dataset.copyapp);if(a)copy(a.install||'No commands available.','Commands copied'); }
   },true);
   document.addEventListener('click',e=>{
     if(e.target.closest('#appGuideModal #copyAppGuideCommands')) { e.stopPropagation();copy(byId('appGuideCommands')?.value||'','Setup commands copied'); }
