@@ -308,6 +308,65 @@ $('#copyTermux').onclick=async()=>{try{await navigator.clipboard.writeText($('#t
 $('#year').textContent=new Date().getFullYear();render();renderApps();setTermuxGuide('base');
 </script>
 
+
+<script>
+/* Independent recovery handlers for Tool Lab controls. These override inline onclicks so one
+   missing handler in the main catalogue script cannot leave the browser utilities inert. */
+(() => {
+  const byId = id => document.getElementById(id);
+  const set = (id, fn) => { const el = byId(id); if (el) el.onclick = fn; };
+  const val = id => byId(id)?.value ?? '';
+  const put = (id, value) => { const el = byId(id); if (el) el.value = value; };
+  const tell = message => {
+    const toast = byId('toast');
+    if (toast) { toast.textContent = message; toast.classList.add('show'); }
+    else alert(message);
+  };
+  const copy = async (value, label='Copied to clipboard') => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(value);
+      else {
+        const t=document.createElement('textarea');t.value=value;t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();
+        if(!document.execCommand('copy')) throw new Error('Copy not available');t.remove();
+      }
+      tell(label);
+    } catch (_) { tell('Copy was blocked. Select the text and copy it manually.'); }
+  };
+  set('base64Encode', () => { try { put('base64Output', btoa(Array.from(new TextEncoder().encode(val('base64Input')), b=>String.fromCharCode(b)).join(''))); } catch(e) { put('base64Output','Encoding failed: '+e.message); } });
+  set('base64Decode', () => { try { const b=atob(val('base64Input').trim());put('base64Output',new TextDecoder('utf-8',{fatal:true}).decode(Uint8Array.from(b,c=>c.charCodeAt(0)))); } catch(_) { put('base64Output','Invalid Base64 or UTF-8 input.'); } });
+  set('jsonFormat', () => { try { put('jsonOutput',JSON.stringify(JSON.parse(val('jsonInput')),null,2)); } catch(e) { put('jsonOutput','Invalid JSON: '+e.message); } });
+  set('jsonMinify', () => { try { put('jsonOutput',JSON.stringify(JSON.parse(val('jsonInput')))); } catch(e) { put('jsonOutput','Invalid JSON: '+e.message); } });
+  set('urlEncode', () => put('urlOutput',encodeURIComponent(val('urlInput'))));
+  set('urlDecode', () => { try { put('urlOutput',decodeURIComponent(val('urlInput'))); } catch(_) { put('urlOutput','Invalid URL-encoded text.'); } });
+  set('hashRun', async () => { try { if(!crypto.subtle) throw new Error('Web Crypto requires HTTPS'); const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(val('hashInput')));put('hashOutput',Array.from(new Uint8Array(d),b=>b.toString(16).padStart(2,'0')).join('')); } catch(e) { put('hashOutput','Hash failed: '+e.message); } });
+  set('deviceCheck', () => { const n=navigator;put('deviceOutput',JSON.stringify({language:n.language,platform:n.userAgentData?.platform||n.platform||'not exposed',userAgent:n.userAgent,online:n.onLine,screen:{width:screen.width,height:screen.height,pixelRatio:devicePixelRatio},timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,hardwareConcurrency:n.hardwareConcurrency||'not exposed',secureContext:isSecureContext},null,2)); });
+  set('inspectFiles', async () => { const files=Array.from(byId('localFiles')?.files||[]);if(!files.length){put('fileOutput','Select one or more files first.');return;}const out=[];for(const f of files){let hash='unavailable';try{const d=await crypto.subtle.digest('SHA-256',await f.arrayBuffer());hash=Array.from(new Uint8Array(d),b=>b.toString(16).padStart(2,'0')).join('');}catch(_){}out.push(f.name+' | '+(f.size/1024).toFixed(1)+' KB | SHA-256: '+hash);}put('fileOutput',out.join('\n')); });
+  set('dnsLookup', async () => { let host=val('dnsHost').trim().replace(/^https?:\\/\\//,'').split('/')[0];try{if(!host||new URL('https://'+host).hostname!==host||!host.includes('.'))throw new Error();}catch(_){put('dnsOutput','Enter a valid hostname, e.g. example.com.');return;}put('dnsOutput','Looking up DNS records…');try{const out=[];for(const [type,num] of [['A',1],['AAAA',28]]){const r=await fetch('https://cloudflare-dns.com/dns-query?name='+encodeURIComponent(host)+'&type='+type,{headers:{accept:'application/dns-json'}});if(!r.ok)throw new Error('HTTP '+r.status);const j=await r.json();const a=(j.Answer||[]).filter(x=>x.type===num).map(x=>x.data);out.push(type+': '+(a.join(', ')||'No record returned'));}put('dnsOutput','Host: '+host+'\n'+out.join('\n')+'\nResolver: Cloudflare DNS-over-HTTPS');}catch(e){put('dnsOutput','Lookup failed: '+e.message);}});
+  set('toHex', () => put('hexOutput',Array.from(new TextEncoder().encode(val('hexInput')),b=>b.toString(16).padStart(2,'0')).join(' ')));
+  set('fromHex', () => { try{const x=val('hexInput').trim();if(!x){put('hexOutput','');return;}const a=x.split(/[\\s,:-]+/).filter(Boolean);if(a.some(v=>!/^[0-9a-f]{2}$/i.test(v)))throw new Error('Use pairs of hex digits, e.g. 48 69');put('hexOutput',new TextDecoder('utf-8',{fatal:true}).decode(new Uint8Array(a.map(v=>parseInt(v,16)))));}catch(e){put('hexOutput','Invalid hex: '+e.message);} });
+  set('toBinary', () => put('hexOutput',Array.from(new TextEncoder().encode(val('hexInput')),b=>b.toString(2).padStart(8,'0')).join(' ')));
+  set('fromBinary', () => { try{const x=val('hexInput').trim();if(!x){put('hexOutput','');return;}const a=x.split(/[\\s,:-]+/).filter(Boolean);if(a.some(v=>!/^[01]{8}$/.test(v)))throw new Error('Use 8-bit groups, e.g. 01001000 01101001');put('hexOutput',new TextDecoder('utf-8',{fatal:true}).decode(new Uint8Array(a.map(v=>parseInt(v,2)))));}catch(e){put('hexOutput','Invalid binary: '+e.message);} });
+  set('caseUpper', () => put('caseOutput',val('caseInput').toLocaleUpperCase()));
+  set('caseLower', () => put('caseOutput',val('caseInput').toLocaleLowerCase()));
+  set('caseTitle', () => put('caseOutput',val('caseInput').toLocaleLowerCase().replace(/(^|[\\s-])([\\p{L}\\p{N}])/gu,(_,p,c)=>p+c.toLocaleUpperCase())));
+  set('caseSlug', () => put('caseOutput',val('caseInput').normalize('NFKD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')));
+  set('copyTermux', () => copy(val('termuxCommands'),'Commands copied'));
+  const task=byId('termuxTask');if(task)task.onchange=()=>{if(typeof setTermuxGuide==='function')setTermuxGuide(task.value);};
+  const appGrid=byId('appGrid');
+  if(appGrid) appGrid.addEventListener('click',e=>{
+    const detail=e.target.closest('[data-appguide]');
+    const cp=e.target.closest('[data-copyapp]');
+    if(!detail&&!cp)return;
+    e.stopImmediatePropagation();
+    if(detail&&typeof showAppGuide==='function')showAppGuide(detail.dataset.appguide);
+    else if(cp&&Array.isArray(window.appCatalog)) { const a=window.appCatalog.find(x=>x.id===cp.dataset.copyapp);if(a)copy(a.install||'No commands available.','Commands copied'); }
+  },true);
+  document.addEventListener('click',e=>{
+    if(e.target.closest('#appGuideModal #copyAppGuideCommands')) { e.stopPropagation();copy(byId('appGuideCommands')?.value||'','Setup commands copied'); }
+  },true);
+})();
+</script>
+
 <script>
 (() => {
   const SUPABASE_URL = 'https://jlulzlxlyreqjpqkfijw.supabase.co';
