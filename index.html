@@ -105,6 +105,18 @@
 #projectForm h3{font-family:'Space Grotesk';font-size:16px;margin:18px 0 8px}
 #projectInstallText{font:12px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace;resize:vertical}
 
+
+.app-guide-overlay{display:none;position:fixed;inset:0;z-index:10000;background:#02040be8;backdrop-filter:blur(12px);padding:18px;place-items:center}
+.app-guide-overlay.show{display:grid}
+.app-guide-dialog{width:min(650px,100%);max-height:90vh;overflow:auto;border:1px solid #65f0e144;border-radius:22px;background:#101827;color:var(--text);padding:22px;box-shadow:0 28px 90px #000b}
+.app-guide-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:15px}
+.app-guide-head h2{font:600 25px 'Space Grotesk';margin:0}
+#appGuideDescription,#appGuideNotes,#appGuideRepo{font-size:13px;line-height:1.75;color:var(--muted);overflow-wrap:anywhere}
+#appGuideCommands{width:100%;background:#080e19;color:#e5f3ff;border:1px solid var(--line);border-radius:12px;padding:13px;font:12px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace;white-space:pre;overflow:auto}
+.app-guide-actions{display:flex;gap:9px;flex-wrap:wrap}
+.app-guide-actions button[hidden]{display:none!important}
+@media(max-width:620px){.app-guide-dialog{padding:16px}.app-guide-head h2{font-size:21px}.app-guide-actions .btn{flex:1}}
+
 /* Public storefront: never navigate away to GitHub; repository URLs are displayed as copyable text in guides. */
 a[href*="github.com"],a[href*="githubusercontent.com"]{display:none!important}
 
@@ -235,19 +247,28 @@ let appCategory='All';
 function renderApps(){
  const q=($('#appSearch')?.value||'').toLowerCase().trim();
  const list=appCatalog.filter(a=>(appCategory==='All'||a.category===appCategory)&&[a.name,a.description,a.category].join(' ').toLowerCase().includes(q));
- $('#appGrid').innerHTML=list.map(a=>'<article class="project"><div class="project-top"><div class="appicon">'+esc(a.icon)+'</div><span class="tag">'+esc(a.category)+'</span></div><h3>'+esc(a.name)+'</h3><p>'+esc(a.description)+'</p><div class="app-status '+(a.action?'pending':'')+'">● '+(a.apk?'Download available':a.action?'Build guide available':'Setup guide available')+'</div><div class="project-actions"><button class="btn primary" data-appguide="'+esc(a.id)+'">Full info / install guide</button><button class="btn secondary" data-copyapp="'+esc(a.id)+'">Copy setup</button></div></article>').join('')||'<div class="empty">No matching apps found.</div>';
- $('#appGrid').querySelectorAll('[data-appguide]').forEach(b=>b.addEventListener('click',()=>showAppGuide(b.dataset.appguide)));
- $('#appGrid').querySelectorAll('[data-copyapp]').forEach(b=>b.addEventListener('click',()=>{const a=appCatalog.find(x=>x.id===b.dataset.copyapp);if(a)copyText(a.install,'Setup instructions copied')}));
+ $('#appGrid').innerHTML=list.map(a=>'<article class="project"><div class="project-top"><div class="appicon">'+esc(a.icon)+'</div><span class="tag">'+esc(a.category)+'</span></div><h3>'+esc(a.name)+'</h3><p>'+esc(a.description)+'</p><div class="app-status '+(a.action?'pending':'')+'">● '+(a.apk?'Download available':a.action?'Build guide available':'Setup guide available')+'</div><div class="project-actions"><button class="btn primary" data-appguide="'+esc(a.id)+'">View Details</button><button class="btn secondary" data-copyapp="'+esc(a.id)+'">Copy commands</button></div></article>').join('')||'<div class="empty">No matching apps found.</div>';
 }
 function showAppGuide(id){
  const a=appCatalog.find(x=>x.id===id);if(!a)return;
- $('#termuxTask').value='custom';$('#termuxCommands').value=a.install;
- $('#termuxGuide').textContent=a.guide+(a.repo?' Source URL (copy only; no redirect): '+a.repo:'');
- let sourceButton=document.getElementById('copyGuideSource');
- if(!sourceButton){sourceButton=document.createElement('button');sourceButton.type='button';sourceButton.id='copyGuideSource';sourceButton.className='btn secondary';sourceButton.textContent='Copy source URL';document.getElementById('copyTermux').insertAdjacentElement('afterend',sourceButton)}
- sourceButton.style.display=a.repo?'inline-flex':'none';
- sourceButton.onclick=()=>{if(a.repo)copyText(a.repo,'Source URL copied')};
- $('#tools').scrollIntoView({behavior:'smooth'});toast('Setup guide loaded: '+a.name);
+ let modal=document.getElementById('appGuideModal');
+ if(!modal){
+   modal=document.createElement('div');modal.id='appGuideModal';modal.className='app-guide-overlay';
+   modal.innerHTML='<section class="app-guide-dialog" role="dialog" aria-modal="true" aria-labelledby="appGuideTitle"><div class="app-guide-head"><div><div class="kicker">NEXORA INSTALL GUIDE</div><h2 id="appGuideTitle"></h2></div><button type="button" class="close" id="closeAppGuide" aria-label="Close details">✕</button></div><p id="appGuideDescription"></p><div class="field"><label for="appGuideCommands">Installation / setup commands</label><textarea id="appGuideCommands" readonly rows="7"></textarea></div><div class="app-guide-actions"><button type="button" class="btn primary" id="copyAppGuideCommands">Copy commands</button><button type="button" class="btn secondary" id="copyAppGuideSource">Copy source URL</button></div><p class="notice" id="appGuideNotes"></p><p class="notice" id="appGuideRepo"></p></section>';
+   document.body.appendChild(modal);
+   modal.addEventListener('click',e=>{if(e.target===modal||e.target.closest('#closeAppGuide'))modal.classList.remove('show')});
+   modal.querySelector('#copyAppGuideCommands').addEventListener('click',()=>copyText(modal.querySelector('#appGuideCommands').value,'Setup commands copied'));
+   modal.querySelector('#copyAppGuideSource').addEventListener('click',()=>{const url=modal.dataset.repo;if(url)copyText(url,'Source URL copied');else toast('No source URL is configured for this item')});
+   document.addEventListener('keydown',e=>{if(e.key==='Escape')modal.classList.remove('show')});
+ }
+ modal.querySelector('#appGuideTitle').textContent=a.name;
+ modal.querySelector('#appGuideDescription').textContent=a.description;
+ modal.querySelector('#appGuideCommands').value=a.install||'No installation commands are available for this item yet.';
+ modal.querySelector('#appGuideNotes').textContent=a.guide||'Review the project README and dependencies before installing.';
+ modal.querySelector('#appGuideRepo').textContent=a.repo?'Source URL (copy only; this page will not redirect): '+a.repo:'No source repository URL is configured for this item.';
+ modal.dataset.repo=a.repo||'';
+ modal.querySelector('#copyAppGuideSource').hidden=!a.repo;
+ modal.classList.add('show');
 }
 const termuxGuides={
  base:{commands:'pkg update && pkg upgrade\npkg install python git curl nano',guide:'Start with package updates. Review upgrade prompts. Termux is not root; Android permissions still apply.'},
@@ -261,7 +282,7 @@ function setTermuxGuide(key){const g=termuxGuides[key]||termuxGuides.base;$('#te
 $('#apkFile').addEventListener('change',async e=>{const file=e.target.files?.[0];const out=$('#apkReport');if(!file){out.textContent='No APK selected.';return}if(!file.name.toLowerCase().endsWith('.apk')){out.textContent='Please select an .apk file.';e.target.value='';return}out.textContent='Calculating checksum locally…';try{const bytes=await file.arrayBuffer();const digest=await crypto.subtle.digest('SHA-256',bytes);const hash=Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,'0')).join('');out.textContent='File: '+file.name+' · Size: '+(file.size/1024/1024).toFixed(2)+' MB · SHA-256: '+hash+' · This file has not been uploaded.'}catch(err){out.textContent='Could not read file or calculate SHA-256. Try using HTTPS and a modern browser.'}});
 $('#appSearch').addEventListener('input',renderApps);
 $('#appChips').addEventListener('click',e=>{const b=e.target.closest('[data-appcat]');if(!b)return;appCategory=b.dataset.appcat;$('[data-appcat]').forEach(x=>x.classList.toggle('active',x===b));renderApps()});
-$('#appGrid').addEventListener('click',e=>{const b=e.target.closest('[data-appguide]');if(b)showAppGuide(b.dataset.appguide)});
+$('#appGrid').addEventListener('click',e=>{const guide=e.target.closest('[data-appguide]');if(guide){showAppGuide(guide.dataset.appguide);return}const copy=e.target.closest('[data-copyapp]');if(copy){const a=appCatalog.find(x=>x.id===copy.dataset.copyapp);if(a)copyText(a.install||'No commands available.','Setup commands copied')}});
 $('#base64Encode').onclick=()=>{try{const bytes=new TextEncoder().encode($('#base64Input').value);let binary='';bytes.forEach(b=>binary+=String.fromCharCode(b));$('#base64Output').value=btoa(binary)}catch(e){$('#base64Output').value='Encoding failed: '+e.message}};
 $('#base64Decode').onclick=()=>{try{const binary=atob($('#base64Input').value.trim());const bytes=Uint8Array.from(binary,c=>c.charCodeAt(0));$('#base64Output').value=new TextDecoder('utf-8',{fatal:true}).decode(bytes)}catch(e){$('#base64Output').value='Invalid Base64 or UTF-8 input.'}};
 $('#jsonFormat').onclick=()=>{try{$('#jsonOutput').value=JSON.stringify(JSON.parse($('#jsonInput').value),null,2)}catch(e){$('#jsonOutput').value='Invalid JSON: '+e.message}};
